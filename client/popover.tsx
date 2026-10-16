@@ -160,8 +160,8 @@ export function SchedulePopover({ theme, layout, close, ...target }: PluginButto
         })}
       </View>
 
-      {/* 时间输入与回显 */}
-      <View style={{ gap: 4 }}>
+      {/* 时间输入与提示 */}
+      <View style={{ gap: 3 }}>
         <TextInput
           accessibilityLabel="Schedule time"
           value={delayInput}
@@ -170,6 +170,13 @@ export function SchedulePopover({ theme, layout, close, ...target }: PluginButto
           placeholderTextColor={colors.foregroundMuted}
           style={{ ...inputStyle(colors), paddingVertical: 6, fontSize: 12 }}
         />
+
+        {/* 输入格式提示：位于输入框下方，字体稍小 (fontSize: 10) */}
+        <Text style={{ color: colors.foregroundMuted, fontSize: 10, paddingHorizontal: 2 }}>
+          {dict.timeHint}
+        </Text>
+
+        {/* 预计触发时间或错误提示 */}
         {timePreview && (
           timePreview.valid ? (
             <Text style={{ color: colors.statusSuccess, fontSize: 11, paddingHorizontal: 2 }}>

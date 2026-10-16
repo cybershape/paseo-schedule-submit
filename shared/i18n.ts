@@ -4,6 +4,7 @@ export interface I18nDictionary {
   dialogTitle: string;
   close: string;
   timePlaceholder: string;
+  timeHint: string;
   contentPlaceholder: string;
   submitBtn: string;
   submitting: string;
@@ -33,7 +34,8 @@ export const zhDict: I18nDictionary = {
   pillLabel: "定时发送",
   dialogTitle: "定时发送用户输入",
   close: "完成",
-  timePlaceholder: "时长 (如 5m, 30s) 或 具体时刻 (如 14:30)",
+  timePlaceholder: "输入时间，例如 5m 或 14:30",
+  timeHint: "支持格式：相对时长 (如 10s, 5m, 1h) 或 具体时刻 (如 14:30)",
   contentPlaceholder: "输入到达设定时间后提交给 Agent 的内容...",
   submitBtn: "确认定时发送",
   submitting: "正在添加…",
@@ -63,7 +65,8 @@ export const enDict: I18nDictionary = {
   pillLabel: "Schedule",
   dialogTitle: "Schedule Message",
   close: "Done",
-  timePlaceholder: "Duration (e.g. 5m, 30s) or clock time (e.g. 14:30)",
+  timePlaceholder: "e.g. 5m or 14:30",
+  timeHint: "Supported: duration (e.g. 10s, 5m, 1h) or clock time (e.g. 14:30)",
   contentPlaceholder: "Enter message to send to the agent when time arrives...",
   submitBtn: "Schedule Message",
   submitting: "Scheduling…",
