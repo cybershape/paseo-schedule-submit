@@ -14,6 +14,7 @@ export interface I18nDictionary {
   agentContextError: string;
   emptyContentError: string;
   timeRequiredError: string;
+  timeoutOverflowError: string;
   invalidTimePrefix: string;
   createdSuccess: string;
   cancelledSuccess: string;
@@ -47,6 +48,7 @@ export const zhDict: I18nDictionary = {
   agentContextError: "请在 Agent 对话界面中打开定时发送。",
   emptyContentError: "请输入要发送的消息内容",
   timeRequiredError: "请输入发送时间",
+  timeoutOverflowError: "定时时长不能超过 24 天 (超出定时器上限)",
   invalidTimePrefix: '格式不符 (支持 "5m", "30s", "14:30" 等)',
   createdSuccess: "已成功设置定时任务",
   cancelledSuccess: "已取消该定时任务",
@@ -80,6 +82,7 @@ export const enDict: I18nDictionary = {
   agentContextError: "Please open from an agent conversation.",
   emptyContentError: "Please enter a message to send",
   timeRequiredError: "Please enter scheduled time",
+  timeoutOverflowError: "Delay cannot exceed 24 days (timer limit)",
   invalidTimePrefix: 'Invalid format (use e.g. "5m", "30s", "14:30")',
   createdSuccess: "Scheduled task created successfully",
   cancelledSuccess: "Scheduled task cancelled",

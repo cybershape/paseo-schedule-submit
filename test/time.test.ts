@@ -50,13 +50,17 @@ function assert(condition: boolean, msg: string) {
   }
 }
 
-// 3. Invalid format tests
+// 3. Invalid format and overflow tests
 {
   const resEmpty = parseTargetTime("");
   assert(resEmpty.valid === false, "empty string should fail");
 
   const resInvalid = parseTargetTime("abc");
   assert(resInvalid.valid === false, "invalid string should fail");
+
+  // 30d exceeds Node's 24.8-day timer limit
+  const resOverflow = parseTargetTime("30d");
+  assert(resOverflow.valid === false, "30d should fail due to timer limit");
 }
 
 console.log("All time tests passed successfully!");

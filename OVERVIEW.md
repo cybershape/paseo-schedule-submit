@@ -18,4 +18,5 @@ When you schedule a message, the timer runs in the background inside the Paseo d
 ## Requirements and privacy
 
 - Requires Paseo 0.11.0 or later.
-- No external accounts, tokens, or network services are required. All task schedules and message contents remain strictly within your local Paseo daemon.
+- Pending schedules are held in daemon memory. When a schedule fires, its message is sent to the selected agent provider.
+- Restarting the Paseo daemon or reloading the plugin clears pending in-memory schedules.

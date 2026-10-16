@@ -1,5 +1,7 @@
 import { getI18n, type I18nDictionary } from "./i18n";
 
+export const MAX_TIMEOUT_MS = 2147483647; // Node.js 32-bit signed integer max limit (~24.8 days)
+
 export interface ParsedTimeResult {
   valid: true;
   targetDate: Date;
@@ -32,6 +34,7 @@ export function parseTargetTime(input: string, now = new Date(), dict = getI18n(
     else if (unit.startsWith("d")) ms = value * 86400 * 1000;
 
     if (ms <= 0) return { valid: false, error: dict.invalidTimePrefix };
+    if (ms > MAX_TIMEOUT_MS) return { valid: false, error: dict.timeoutOverflowError };
     const targetDate = new Date(now.getTime() + ms);
     return {
       valid: true,
@@ -72,6 +75,9 @@ export function parseTargetTime(input: string, now = new Date(), dict = getI18n(
     const delayMs = targetDate.getTime() - now.getTime();
     if (delayMs <= 0) {
       return { valid: false, error: dict.invalidTimePrefix };
+    }
+    if (delayMs > MAX_TIMEOUT_MS) {
+      return { valid: false, error: dict.timeoutOverflowError };
     }
     return {
       valid: true,
