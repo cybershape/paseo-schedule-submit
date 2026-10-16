@@ -1,6 +1,7 @@
 export interface I18nDictionary {
   pillTitle: string;
   pillLabel: string;
+  pillLabelWithCount: (count: number) => string;
   dialogTitle: string;
   close: string;
   timeLabel: string;
@@ -35,6 +36,7 @@ export interface I18nDictionary {
 export const zhDict: I18nDictionary = {
   pillTitle: "定时发送用户输入",
   pillLabel: "定时发送",
+  pillLabelWithCount: (count: number) => `定时发送(${count})`,
   dialogTitle: "定时发送用户输入",
   close: "完成",
   timeLabel: "时间",
@@ -69,6 +71,7 @@ export const zhDict: I18nDictionary = {
 export const enDict: I18nDictionary = {
   pillTitle: "Schedule user message",
   pillLabel: "Schedule",
+  pillLabelWithCount: (count: number) => `Schedule(${count})`,
   dialogTitle: "Schedule Message",
   close: "Done",
   timeLabel: "Time",
