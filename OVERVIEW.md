@@ -2,14 +2,20 @@
 
 Schedule user messages to agents in Paseo with a composer pill button, an intuitive popover UI, and a slash command.
 
+## How it works
+
+When you schedule a message, the timer runs in the background inside the Paseo daemon process. Closing the popover, switching workspaces, or navigating away will not interrupt scheduled jobs. When the scheduled time arrives, the message is dispatched to the target agent as a user prompt and automatically triggers agent execution.
+
 ## Features
 
-- **Composer Pill**: A dedicated `Schedule` button right above the agent input box (alongside Prompts and Subagents).
-- **Popover UI**: Click to open a scheduling panel with:
-  - Preset delay buttons (`+1m`, `+5m`, `+15m`, `+30m`, `+1h`, `+2h`).
-  - Flexible time inputs: relative durations (e.g. `10s`, `5m`, `2h`) or specific clock times (e.g. `14:30`, `18:00`).
-  - Real-time time calculation preview (e.g., "Expected: Today 16:30:00 (5 minutes later)").
-  - Multi-line message composer.
-  - Active scheduled jobs list with one-click cancellation.
-- **Background Execution**: Timers run inside the Paseo daemon process. Closing the popover or switching workspaces will not interrupt scheduled jobs.
-- **Slash Command**: Use `/schedule in 5m <message>` or `/schedule list` directly from the chat box.
+- **Composer Pill**: A dedicated Clock button located directly above the agent composer input box.
+- **Quick Presets**: Fast-delay shortcuts including `+1m`, `+5m`, `+15m`, `+30m`, `+1h`, and `+2h`.
+- **Flexible Time Parsing**: Supports relative durations (such as `10s`, `5m`, `2h`) and specific clock times (such as `14:30` or `18:00`, rolling over to tomorrow if today's time has already passed).
+- **Live Preview**: Dynamically computes and displays the expected trigger date and time as you type.
+- **Task Management**: Lists pending scheduled jobs for the current agent with one-click cancellation.
+- **Slash Command**: Directly schedule from the chat box with `/schedule in 5m <message>`, `/schedule at 18:00 <message>`, or view active tasks with `/schedule list`.
+
+## Requirements and privacy
+
+- Requires Paseo 0.11.0 or later.
+- No external accounts, tokens, or network services are required. All task schedules and message contents remain strictly within your local Paseo daemon.
