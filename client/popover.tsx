@@ -33,11 +33,11 @@ export function SchedulePopover({ theme, layout, close, ...target }: PluginButto
   const createTask = useRpc(createTaskRpc);
   const cancelTask = useRpc(cancelTaskRpc);
 
-  // 1. 打开时默认不选中任何 preset，输入框为空
+  // 1. Initially no preset selected, input empty
   const [delayInput, setDelayInput] = useState("");
   const [content, setContent] = useState("");
 
-  // 2. 每秒刷新当前时间戳，驱动已存在任务的倒计时每秒更新
+  // 2. Refresh current timestamp every second to drive countdown updates
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const timer = setInterval(() => {
@@ -46,20 +46,20 @@ export function SchedulePopover({ theme, layout, close, ...target }: PluginButto
     return () => clearInterval(timer);
   }, []);
 
-  // 查询当前 Agent 待执行的任务
+  // Query scheduled tasks for the current agent
   const tasksQuery = useQuery({
     queryKey: ["scheduled-tasks", agentId],
     queryFn: () => listTasks({ agentId }),
     refetchInterval: 3000,
   });
 
-  // 实时解析时间输入并展示预览
+  // Parse time input in real-time and provide preview
   const timePreview = useMemo(() => {
     if (!delayInput.trim()) return null;
     return parseTargetTime(delayInput, new Date(now), dict);
   }, [delayInput, now, dict]);
 
-  // 创建定时任务
+  // Create scheduled task
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!content.trim()) throw new Error(dict.emptyContentError);
@@ -82,7 +82,7 @@ export function SchedulePopover({ theme, layout, close, ...target }: PluginButto
     },
   });
 
-  // 取消任务
+  // Cancel task
   const cancelMutation = useMutation({
     mutationFn: async (taskId: string) => {
       return await cancelTask({ taskId });
@@ -104,7 +104,7 @@ export function SchedulePopover({ theme, layout, close, ...target }: PluginButto
         padding: 4,
       }}
     >
-      {/* 头部标题与关闭按钮 */}
+      {/* Header title and close button */}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
           <Icon name="Clock" size={15} color={colors.accent} />
@@ -127,7 +127,7 @@ export function SchedulePopover({ theme, layout, close, ...target }: PluginButto
         </Pressable>
       </View>
 
-      {/* 快捷预设按钮组（打开时不默认选中任何一项） */}
+      {/* Quick presets (no preset selected by default on open) */}
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
         {PRESETS.map((p) => {
           const selected = delayInput.trim() === p;
@@ -160,57 +160,77 @@ export function SchedulePopover({ theme, layout, close, ...target }: PluginButto
         })}
       </View>
 
-      {/* 时间输入与提示 */}
-      <View style={{ gap: 3 }}>
-        <TextInput
-          accessibilityLabel="Schedule time"
-          value={delayInput}
-          onChangeText={setDelayInput}
-          placeholder={dict.timePlaceholder}
-          placeholderTextColor={colors.foregroundMuted}
-          style={{ ...inputStyle(colors), paddingVertical: 6, fontSize: 12 }}
-        />
-
-        {/* 输入格式提示：位于输入框下方，字体稍小 (fontSize: 10) */}
-        <Text style={{ color: colors.foregroundMuted, fontSize: 10, paddingHorizontal: 2 }}>
-          {dict.timeHint}
-        </Text>
-
-        {/* 预计触发时间或错误提示 */}
-        {timePreview && (
-          timePreview.valid ? (
-            <Text style={{ color: colors.statusSuccess, fontSize: 11, paddingHorizontal: 2 }}>
-              ✓ {dict.expectedPrefix}{timePreview.displayText}
+      {/* Form input section: Time and Message */}
+      <View style={{ gap: 8 }}>
+        {/* Time input row */}
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 6 }}>
+          <View style={{ width: 50, height: 32, justifyContent: "center" }}>
+            <Text style={{ color: colors.foreground, fontSize: 11, fontWeight: "600" }}>
+              {dict.timeLabel}
             </Text>
-          ) : (
-            <Text style={{ color: colors.statusDanger, fontSize: 11, paddingHorizontal: 2 }}>
-              ⚠ {timePreview.error}
+          </View>
+          <View style={{ flex: 1, gap: 3 }}>
+            <TextInput
+              accessibilityLabel="Schedule time"
+              value={delayInput}
+              onChangeText={setDelayInput}
+              placeholder={dict.timePlaceholder}
+              placeholderTextColor={colors.foregroundMuted}
+              style={{ ...inputStyle(colors), height: 32, paddingVertical: 6, fontSize: 12 }}
+            />
+
+            {/* Input format hint: confined to input width without wrapping */}
+            <Text
+              numberOfLines={1}
+              style={{ color: colors.foregroundMuted, fontSize: 9.5, paddingHorizontal: 2 }}
+            >
+              {dict.timeHint}
             </Text>
-          )
-        )}
+
+            {/* Expected trigger time or error preview */}
+            {timePreview && (
+              timePreview.valid ? (
+                <Text style={{ color: colors.statusSuccess, fontSize: 11, paddingHorizontal: 2 }}>
+                  ✓ {dict.expectedPrefix}{timePreview.displayText}
+                </Text>
+              ) : (
+                <Text style={{ color: colors.statusDanger, fontSize: 11, paddingHorizontal: 2 }}>
+                  ⚠ {timePreview.error}
+                </Text>
+              )
+            )}
+          </View>
+        </View>
+
+        {/* Message content input row */}
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 6 }}>
+          <View style={{ width: 50, paddingTop: 7, justifyContent: "flex-start" }}>
+            <Text style={{ color: colors.foreground, fontSize: 11, fontWeight: "600" }}>
+              {dict.messageLabel}
+            </Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <TextInput
+              accessibilityLabel="Schedule content"
+              value={content}
+              onChangeText={setContent}
+              multiline
+              numberOfLines={3}
+              placeholder={dict.contentPlaceholder}
+              placeholderTextColor={colors.foregroundMuted}
+              style={{
+                ...inputStyle(colors),
+                minHeight: 70,
+                paddingVertical: 6,
+                fontSize: 12,
+                textAlignVertical: "top",
+              }}
+            />
+          </View>
+        </View>
       </View>
 
-      {/* 内容多行输入框 */}
-      <View style={{ gap: 4 }}>
-        <TextInput
-          accessibilityLabel="Schedule content"
-          value={content}
-          onChangeText={setContent}
-          multiline
-          numberOfLines={3}
-          placeholder={dict.contentPlaceholder}
-          placeholderTextColor={colors.foregroundMuted}
-          style={{
-            ...inputStyle(colors),
-            minHeight: 70,
-            paddingVertical: 6,
-            fontSize: 12,
-            textAlignVertical: "top",
-          }}
-        />
-      </View>
-
-      {/* 提交添加按钮 */}
+      {/* Submit button */}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={dict.submitBtn}
@@ -233,7 +253,7 @@ export function SchedulePopover({ theme, layout, close, ...target }: PluginButto
         </Text>
       </Pressable>
 
-      {/* 当前 Agent 的定时任务列表：每秒基于 now 刷新剩余时间 */}
+      {/* Scheduled tasks list for current agent */}
       {tasks.length > 0 && (
         <View style={{ marginTop: 4, gap: 6, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 8 }}>
           <Text style={{ color: colors.foregroundMuted, fontSize: 11, fontWeight: "600" }}>

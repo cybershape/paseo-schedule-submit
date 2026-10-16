@@ -20,7 +20,7 @@ export function parseTargetTime(input: string, now = new Date(), dict = getI18n(
     return { valid: false, error: dict.timeRequiredError };
   }
 
-  // 1. 相对时长：如 10s, 5m, 1h, 2.5h, +5m, +30s
+  // 1. Relative duration: e.g. 10s, 5m, 1h, 2.5h, +5m, +30s
   const relativeMatch = trimmed.match(/^\+?(\d+(?:\.\d+)?)\s*(s|sec|seconds?|m|min|minutes?|h|hours?|d|days?)$/i);
   if (relativeMatch) {
     const value = parseFloat(relativeMatch[1]);
@@ -41,7 +41,7 @@ export function parseTargetTime(input: string, now = new Date(), dict = getI18n(
     };
   }
 
-  // 2. 当天时刻：如 14:30 或 14:30:00
+  // 2. Clock time today: e.g. 14:30 or 14:30:00
   const timeMatch = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
   if (timeMatch) {
     const hour = parseInt(timeMatch[1], 10);
@@ -52,7 +52,7 @@ export function parseTargetTime(input: string, now = new Date(), dict = getI18n(
     }
     const targetDate = new Date(now);
     targetDate.setHours(hour, minute, second, 0);
-    // 如果今天已经过了这个点，顺延到明天该时刻
+    // If this time today has already passed, roll over to tomorrow
     if (targetDate.getTime() <= now.getTime()) {
       targetDate.setDate(targetDate.getDate() + 1);
     }
@@ -65,7 +65,7 @@ export function parseTargetTime(input: string, now = new Date(), dict = getI18n(
     };
   }
 
-  // 3. 绝对日期时间：如 2025-05-01 14:30 或 2025/05/01 14:30:00
+  // 3. Absolute date-time: e.g. 2025-05-01 14:30 or 2025/05/01 14:30:00
   const parsed = Date.parse(trimmed.replace(/-/g, "/"));
   if (!Number.isNaN(parsed)) {
     const targetDate = new Date(parsed);

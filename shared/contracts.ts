@@ -12,7 +12,7 @@ export const scheduledTaskSchema = z.object({
 
 export type ScheduledTask = z.infer<typeof scheduledTaskSchema>;
 
-// 创建定时任务
+// Create scheduled task
 export const createTaskRpc = defineRpc({
   name: "schedule.create",
   input: z.object({
@@ -23,7 +23,7 @@ export const createTaskRpc = defineRpc({
   output: scheduledTaskSchema,
 });
 
-// 查询定时任务列表
+// List scheduled tasks
 export const listTasksRpc = defineRpc({
   name: "schedule.list",
   input: z.object({
@@ -32,7 +32,7 @@ export const listTasksRpc = defineRpc({
   output: z.array(scheduledTaskSchema),
 });
 
-// 取消定时任务
+// Cancel scheduled task
 export const cancelTaskRpc = defineRpc({
   name: "schedule.cancel",
   input: z.object({

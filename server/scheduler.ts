@@ -27,7 +27,7 @@ export class TaskScheduler {
 
     const client = paseoOverride || this.paseoClient;
     if (!client) {
-      throw new Error("Paseo 客户端尚未就绪");
+      throw new Error("Paseo client is not ready");
     }
 
     const id = `sched_${Date.now()}_${++this.counter}`;
@@ -44,10 +44,10 @@ export class TaskScheduler {
       this.jobs.delete(id);
       this.onTasksChange?.(agentId);
       try {
-        console.log(`[paseo-schedule-submit] 触发任务 [${id}] 发送给 Agent [${agentId}]`);
+        console.log(`[paseo-schedule-submit] Triggered task [${id}] for agent [${agentId}]`);
         await client.agents.ref(agentId).send(content);
       } catch (err: any) {
-        console.error(`[paseo-schedule-submit] 任务 [${id}] 执行失败:`, err?.message || err);
+        console.error(`[paseo-schedule-submit] Task [${id}] execution failed:`, err?.message || err);
       }
     }, parsed.delayMs);
 

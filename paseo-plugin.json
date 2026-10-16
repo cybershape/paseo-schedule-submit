@@ -1,7 +1,7 @@
 {
   "id": "paseo-schedule-submit",
   "name": "Schedule Submit",
-  "description": "定时发送用户输入到 Agent 对话中，支持 Composer 操作栏按钮、弹出设置浮层与 /schedule 斜杠命令",
+  "description": "Schedule user messages to agents in Paseo with a composer pill button, an intuitive popover UI, and a /schedule slash command",
   "media": [],
   "requirements": {
     "paseo": ">=0.11.0"

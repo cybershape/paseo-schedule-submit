@@ -22,20 +22,20 @@ async function testScheduler() {
   const scheduler = new TaskScheduler();
   scheduler.setPaseoClient(mockPaseo);
 
-  // 1. 创建即时任务（100ms）
-  const task = scheduler.create("agent_1", "1s", "你好，这是定时测试");
-  assert(task.agentId === "agent_1", "agentId 应一致");
-  assert(task.content === "你好，这是定时测试", "content 应一致");
+  // 1. Create immediate task (1s)
+  const task = scheduler.create("agent_1", "1s", "Hello, scheduled test");
+  assert(task.agentId === "agent_1", "agentId should match");
+  assert(task.content === "Hello, scheduled test", "content should match");
 
-  // 2. 检查 list
+  // 2. Verify list
   const list1 = scheduler.list("agent_1");
-  assert(list1.length === 1, "任务列表应为 1");
+  assert(list1.length === 1, "task list length should be 1");
 
-  // 3. 取消任务
+  // 3. Cancel task
   const cancelled = scheduler.cancel(task.id);
-  assert(cancelled === true, "取消应成功");
+  assert(cancelled === true, "cancellation should succeed");
   const list2 = scheduler.list("agent_1");
-  assert(list2.length === 0, "取消后列表应为 0");
+  assert(list2.length === 0, "task list should be 0 after cancellation");
 
   scheduler.dispose();
   console.log("Scheduler tests passed successfully!");

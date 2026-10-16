@@ -3,6 +3,8 @@ export interface I18nDictionary {
   pillLabel: string;
   dialogTitle: string;
   close: string;
+  timeLabel: string;
+  messageLabel: string;
   timePlaceholder: string;
   timeHint: string;
   contentPlaceholder: string;
@@ -34,8 +36,10 @@ export const zhDict: I18nDictionary = {
   pillLabel: "定时发送",
   dialogTitle: "定时发送用户输入",
   close: "完成",
+  timeLabel: "时间",
+  messageLabel: "消息",
   timePlaceholder: "输入时间，例如 5m 或 14:30",
-  timeHint: "支持格式：相对时长 (如 10s, 5m, 1h) 或 具体时刻 (如 14:30)",
+  timeHint: "相对时长 (如 10s, 5m, 1h) 或 时刻 (如 14:30)",
   contentPlaceholder: "输入到达设定时间后提交给 Agent 的内容...",
   submitBtn: "确认定时发送",
   submitting: "正在添加…",
@@ -65,8 +69,10 @@ export const enDict: I18nDictionary = {
   pillLabel: "Schedule",
   dialogTitle: "Schedule Message",
   close: "Done",
+  timeLabel: "Time",
+  messageLabel: "Message",
   timePlaceholder: "e.g. 5m or 14:30",
-  timeHint: "Supported: duration (e.g. 10s, 5m, 1h) or clock time (e.g. 14:30)",
+  timeHint: "duration (10s, 5m, 1h) or time (14:30)",
   contentPlaceholder: "Enter message to send to the agent when time arrives...",
   submitBtn: "Schedule Message",
   submitting: "Scheduling…",
@@ -95,13 +101,14 @@ export const enDict: I18nDictionary = {
 };
 
 /**
- * 判断当前运行环境是否为中文界面（支持浏览器、React Native 与 Node 安全运行）
+ * Determine whether the current runtime environment uses a Chinese locale
+ * (safe across Browser, React Native, and Node environments).
  */
 export function isChineseLocale(): boolean {
   const g = globalThis as Record<string, any>;
 
   try {
-    // 1. 尝试从 localStorage 中读取 Paseo 的设置配置
+    // 1. Try reading Paseo's language preference from localStorage
     if (g.window?.localStorage) {
       const raw = g.window.localStorage.getItem("@paseo:app-settings");
       if (raw) {
@@ -118,17 +125,17 @@ export function isChineseLocale(): boolean {
       }
     }
   } catch {
-    // 忽略异常
+    // Ignore error
   }
 
-  // 2. 检查 DOM 根节点的 lang 属性
+  // 2. Check DOM document element lang attribute
   if (g.document?.documentElement?.lang) {
     if (String(g.document.documentElement.lang).toLowerCase().startsWith("zh")) {
       return true;
     }
   }
 
-  // 3. 检查浏览器/系统语言 navigator
+  // 3. Check navigator language settings
   if (g.navigator) {
     if (Array.isArray(g.navigator.languages) && g.navigator.languages.length > 0) {
       const first = String(g.navigator.languages[0]).toLowerCase();

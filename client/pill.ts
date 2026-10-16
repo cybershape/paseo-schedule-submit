@@ -62,7 +62,7 @@ export function contributeComposerPills(client: PluginClientContext) {
     })
     .catch((error: unknown) => {
       if (!lifetime.signal.aborted) {
-        console.error("[paseo-schedule-submit] 观察 Agent 失败", error);
+        console.error("[paseo-schedule-submit] Failed to watch agents", error);
       }
     });
 
