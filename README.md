@@ -22,8 +22,11 @@ A Paseo plugin that adds a scheduled submission button (Composer Pill) above the
    - **Clean Form Layout**: Aligned Time and Message inputs with format hints strictly confined to the input area.
    - **Task Management**: Clear overview of pending scheduled tasks for the current agent, with one-click cancellation.
 
-3. **Background Daemon Execution**:
-   - Tasks are managed by the Paseo backend daemon. Closing the popover, switching agents, or navigating away will not interrupt the timers.
+3. **Background Daemon Execution & Persistence**:
+   - Tasks are managed by the Paseo backend daemon and persisted per-agent to local storage (`~/.paseo/plugins-data/paseo-schedule-submit/agents/`).
+   - Daemon restarts automatically restore pending timers and resume scheduled dispatching.
+   - Archiving an agent automatically cleans up its pending timers and removes its persisted task file.
+   - Closing the popover, switching agents, or navigating away will not interrupt the timers.
    - When the scheduled time arrives, the content is submitted as a real user message to the target agent and execution triggers automatically.
 
 4. **Slash Command**:

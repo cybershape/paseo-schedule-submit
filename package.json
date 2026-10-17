@@ -15,7 +15,8 @@
     "shared/"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "bun test/time.test.ts && bun test/scheduler.test.ts"
   },
   "devDependencies": {
     "@getpaseo/plugin": "0.11.4",

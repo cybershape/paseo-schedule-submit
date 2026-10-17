@@ -18,5 +18,7 @@ When you schedule a message, the timer runs in the background inside the Paseo d
 ## Requirements and privacy
 
 - Requires Paseo 0.11.0 or later.
-- Pending schedules are held in daemon memory. When a schedule fires, its message is sent to the selected agent provider.
-- Restarting the Paseo daemon or reloading the plugin clears pending in-memory schedules.
+- Pending schedules are persisted per-agent to local storage (`~/.paseo/plugins-data/paseo-schedule-submit/agents/<agentId>.json`).
+- Daemon restarts automatically restore pending timers and resume scheduled dispatching.
+- Archiving an agent automatically cleans up its pending timers and deletes its persisted task file.
+- When a schedule fires, its message is sent to the target agent provider.
