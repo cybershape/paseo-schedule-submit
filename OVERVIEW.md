@@ -13,6 +13,7 @@ When you schedule a message, the timer runs in the background inside the Paseo d
 - **Flexible Time Parsing**: Supports relative durations (such as `10s`, `5m`, `2h`) and specific clock times (such as `14:30` or `18:00`, rolling over to tomorrow if today's time has already passed).
 - **Live Preview**: Dynamically computes and displays the expected trigger date and time as you type.
 - **Task Management**: Lists pending scheduled jobs for the current agent with one-click cancellation.
+- **Workspace Label**: Automatically attaches a blue `schedule` label to workspaces containing active scheduled tasks, and clears it when active tasks reach zero.
 - **Slash Command**: Directly schedule from the chat box with `/schedule in 5m <message>`, `/schedule at 18:00 <message>`, or view active tasks with `/schedule list`.
 
 ## Requirements and privacy

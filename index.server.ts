@@ -26,9 +26,9 @@ export default function contribute(server: PluginServerContext) {
   });
 
   // 4. RPC 路由
-  server.handle(createTaskRpc, async ({ agentId, delayOrTime, content }, context) => {
+  server.handle(createTaskRpc, async ({ agentId, workspaceId, delayOrTime, content }, context) => {
     scheduler.setPaseoClient(context.paseo);
-    return await scheduler.create(agentId, delayOrTime, content, context.paseo);
+    return await scheduler.create(agentId, delayOrTime, content, workspaceId, context.paseo);
   });
 
   server.handle(listTasksRpc, async ({ agentId }, context) => {

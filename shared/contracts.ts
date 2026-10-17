@@ -4,6 +4,7 @@ import { z } from "zod";
 export const scheduledTaskSchema = z.object({
   id: z.string(),
   agentId: z.string(),
+  workspaceId: z.string().optional(),
   content: z.string(),
   createdAt: z.string(),
   triggerAt: z.string(), // ISO string
@@ -17,6 +18,7 @@ export const createTaskRpc = defineRpc({
   name: "schedule.create",
   input: z.object({
     agentId: z.string().min(1),
+    workspaceId: z.string().optional(),
     delayOrTime: z.string().min(1),
     content: z.string().min(1),
   }),

@@ -157,6 +157,42 @@ async function runTests() {
     assert(!sentMessages.some((m) => m.content === "Very old content"), "very old task should be dropped");
     schedulerDowntime.dispose();
 
+    console.log("--- Test 7: Workspace Label Assignment & Auto-Clear When Count is 0 ---");
+    const labelEvents: Array<{ workspaceId: string; assigned: boolean }> = [];
+    const schedulerLabel = new TaskScheduler({
+      baseDir: testBaseDir,
+      workspaceLabelSetter: (wsId, assigned) => {
+        labelEvents.push({ workspaceId: wsId, assigned });
+      },
+    });
+    schedulerLabel.setPaseoClient(mockPaseo);
+
+    // 1. 创建第一个任务 -> 打上 schedule 标签 (assigned: true)
+    const wsTask1 = await schedulerLabel.create("agent_ws_1", "1h", "Task 1", "ws_100");
+    assert(labelEvents.length === 1, "should emit 1 label event");
+    assert(labelEvents[0].workspaceId === "ws_100" && labelEvents[0].assigned === true, "should assign schedule label to ws_100");
+
+    // 2. 创建同一个工作区的第二个任务 -> 依然保持 assigned: true
+    const wsTask2 = await schedulerLabel.create("agent_ws_2", "1h", "Task 2", "ws_100");
+    assert(labelEvents.length === 2, "should emit label update for task 2");
+    assert(labelEvents[1].workspaceId === "ws_100" && labelEvents[1].assigned === true, "should maintain schedule label on ws_100");
+
+    // 3. 取消第一个任务 -> 剩余任务数 > 0，依然 assigned: true
+    await schedulerLabel.cancel(wsTask1.id);
+    assert(labelEvents[labelEvents.length - 1].assigned === true, "label should still be true since task 2 remains");
+
+    // 4. 取消第二个任务（任务数归 0）-> 自动清空 schedule 标签 (assigned: false)
+    await schedulerLabel.cancel(wsTask2.id);
+    assert(labelEvents[labelEvents.length - 1].assigned === false, "label should be removed (assigned: false) when count reaches 0");
+
+    // 5. 测试任务到期自动清空标签
+    const wsQuickTask = await schedulerLabel.create("agent_ws_quick", "0.1s", "Quick task", "ws_200");
+    assert(labelEvents[labelEvents.length - 1].workspaceId === "ws_200" && labelEvents[labelEvents.length - 1].assigned === true, "ws_200 assigned");
+    await delay(180); // 等待触发
+    assert(labelEvents[labelEvents.length - 1].workspaceId === "ws_200" && labelEvents[labelEvents.length - 1].assigned === false, "ws_200 label cleared after task execution");
+
+    schedulerLabel.dispose();
+
     console.log("All scheduler persistence and recovery tests passed successfully!");
   } finally {
     await fs.rm(testBaseDir, { recursive: true, force: true }).catch(() => {});

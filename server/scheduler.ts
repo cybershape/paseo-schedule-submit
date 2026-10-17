@@ -15,6 +15,7 @@ interface ActiveJob {
 export interface TaskSchedulerOptions {
   baseDir?: string;
   gracePeriodMs?: number;
+  workspaceLabelSetter?: (workspaceId: string, assigned: boolean) => Promise<void> | void;
 }
 
 export class TaskScheduler {
@@ -24,12 +25,14 @@ export class TaskScheduler {
   private paseoClient: PaseoApi | null = null;
   private agentsDir: string;
   private gracePeriodMs: number;
+  private customWorkspaceLabelSetter?: (workspaceId: string, assigned: boolean) => Promise<void> | void;
   public onTasksChange?: (agentId?: string) => void;
 
   constructor(options?: TaskSchedulerOptions) {
     const paseoHome = process.env.PASEO_HOME || path.join(os.homedir(), ".paseo");
     this.agentsDir = options?.baseDir || path.join(paseoHome, "plugins-data", "paseo-schedule-submit", "agents");
     this.gracePeriodMs = options?.gracePeriodMs ?? 5 * 60 * 1000;
+    this.customWorkspaceLabelSetter = options?.workspaceLabelSetter;
   }
 
   setPaseoClient(client: PaseoApi) {
@@ -92,6 +95,18 @@ export class TaskScheduler {
           console.error(`[paseo-schedule-submit] Failed to load agent task file [${file.name}]:`, fileErr);
         }
       }
+
+      // 恢复完成后同步所有涉及到的工作区标签
+      const allWorkspaces = new Set<string>();
+      for (const job of this.jobs.values()) {
+        if (job.task.workspaceId) allWorkspaces.add(job.task.workspaceId);
+      }
+      for (const task of this.pendingDispatches) {
+        if (task.workspaceId) allWorkspaces.add(task.workspaceId);
+      }
+      for (const wsId of allWorkspaces) {
+        await this.updateWorkspaceLabel(wsId);
+      }
     } catch (err: any) {
       if (err.code !== "ENOENT") {
         console.error("[paseo-schedule-submit] Failed to initialize task storage:", err);
@@ -104,6 +119,9 @@ export class TaskScheduler {
       this.jobs.delete(task.id);
       await this.persistAgentTasks(task.agentId);
       this.onTasksChange?.(task.agentId);
+      if (task.workspaceId) {
+        await this.updateWorkspaceLabel(task.workspaceId);
+      }
       await this.executeOrQueue(task);
     }, delayMs);
 
@@ -165,14 +183,25 @@ export class TaskScheduler {
   }
 
   async archiveAgent(agentId: string): Promise<void> {
+    const affectedWorkspaces = new Set<string>();
+
     for (const [id, job] of this.jobs.entries()) {
       if (job.task.agentId === agentId) {
         clearTimeout(job.timer);
         this.jobs.delete(id);
+        if (job.task.workspaceId) {
+          affectedWorkspaces.add(job.task.workspaceId);
+        }
       }
     }
 
-    this.pendingDispatches = this.pendingDispatches.filter((t) => t.agentId !== agentId);
+    this.pendingDispatches = this.pendingDispatches.filter((t) => {
+      if (t.agentId === agentId) {
+        if (t.workspaceId) affectedWorkspaces.add(t.workspaceId);
+        return false;
+      }
+      return true;
+    });
 
     const filePath = this.getAgentFilePath(agentId);
     try {
@@ -184,9 +213,12 @@ export class TaskScheduler {
     }
 
     this.onTasksChange?.(agentId);
+    for (const wsId of affectedWorkspaces) {
+      await this.updateWorkspaceLabel(wsId);
+    }
   }
 
-  async create(agentId: string, delayOrTime: string, content: string, paseoOverride?: PaseoApi): Promise<ScheduledTask> {
+  async create(agentId: string, delayOrTime: string, content: string, workspaceId?: string, paseoOverride?: PaseoApi): Promise<ScheduledTask> {
     const parsed = parseTargetTime(delayOrTime);
     if (!parsed.valid) {
       throw new Error(parsed.error);
@@ -200,6 +232,7 @@ export class TaskScheduler {
     const task: ScheduledTask = {
       id,
       agentId,
+      workspaceId,
       content,
       createdAt: new Date().toISOString(),
       triggerAt: parsed.targetDate.toISOString(),
@@ -209,6 +242,11 @@ export class TaskScheduler {
     this.scheduleJob(task, parsed.delayMs);
     await this.persistAgentTasks(agentId);
     this.onTasksChange?.(agentId);
+
+    if (workspaceId) {
+      await this.updateWorkspaceLabel(workspaceId);
+    }
+
     return task;
   }
 
@@ -221,26 +259,76 @@ export class TaskScheduler {
   }
 
   async cancel(taskId: string): Promise<boolean> {
-    let agentId: string | undefined;
+    let cancelledTask: ScheduledTask | undefined;
 
     const job = this.jobs.get(taskId);
     if (job) {
       clearTimeout(job.timer);
       this.jobs.delete(taskId);
-      agentId = job.task.agentId;
+      cancelledTask = job.task;
     }
 
     const pendingIndex = this.pendingDispatches.findIndex((t) => t.id === taskId);
     if (pendingIndex !== -1) {
-      agentId = this.pendingDispatches[pendingIndex].agentId;
+      cancelledTask = this.pendingDispatches[pendingIndex];
       this.pendingDispatches.splice(pendingIndex, 1);
     }
 
-    if (!agentId) return false;
+    if (!cancelledTask) return false;
 
-    await this.persistAgentTasks(agentId);
-    this.onTasksChange?.(agentId);
+    await this.persistAgentTasks(cancelledTask.agentId);
+    this.onTasksChange?.(cancelledTask.agentId);
+
+    if (cancelledTask.workspaceId) {
+      await this.updateWorkspaceLabel(cancelledTask.workspaceId);
+    }
+
     return true;
+  }
+
+  getActiveTaskCountForWorkspace(workspaceId: string): number {
+    let count = 0;
+    for (const job of this.jobs.values()) {
+      if (job.task.workspaceId === workspaceId) count++;
+    }
+    for (const task of this.pendingDispatches) {
+      if (task.workspaceId === workspaceId) count++;
+    }
+    return count;
+  }
+
+  async updateWorkspaceLabel(workspaceId: string): Promise<void> {
+    const count = this.getActiveTaskCountForWorkspace(workspaceId);
+    const assigned = count > 0;
+    await this.setWorkspaceLabel(workspaceId, assigned);
+  }
+
+  async setWorkspaceLabel(workspaceId: string, assigned: boolean): Promise<void> {
+    if (this.customWorkspaceLabelSetter) {
+      await this.customWorkspaceLabelSetter(workspaceId, assigned);
+      return;
+    }
+
+    if (typeof process !== "undefined" && typeof process.send === "function") {
+      try {
+        process.send({
+          type: "paseo_frame",
+          data: JSON.stringify({
+            type: "workspace.label.assignment.set.request",
+            requestId: `req_label_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+            workspaceId,
+            label: {
+              name: "schedule",
+              color: "blue",
+            },
+            assigned,
+          }),
+          isBinary: false,
+        });
+      } catch (err) {
+        console.error(`[paseo-schedule-submit] Failed to send workspace label frame for workspace [${workspaceId}]:`, err);
+      }
+    }
   }
 
   dispose() {

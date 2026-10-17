@@ -29,7 +29,11 @@ A Paseo plugin that adds a scheduled submission button (Composer Pill) above the
    - Closing the popover, switching agents, or navigating away will not interrupt the timers.
    - When the scheduled time arrives, the content is submitted as a real user message to the target agent and execution triggers automatically.
 
-4. **Slash Command**:
+4. **Dynamic Workspace Labeling**:
+   - Workspaces with pending scheduled tasks are automatically labeled with a blue `schedule` badge.
+   - When all scheduled tasks within a workspace are executed or cancelled (active count reaches 0), the `schedule` label is automatically cleared.
+
+5. **Slash Command**:
    - Keyboard-friendly users can type commands directly in the composer box:
      - `/schedule in 5m Check the latest test suite results`
      - `/schedule at 18:00 Summarize the work completed today`

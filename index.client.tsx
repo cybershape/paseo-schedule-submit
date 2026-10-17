@@ -16,7 +16,7 @@ export default function contribute(client: PluginClientContext) {
     description: dict.pillTitle,
     argumentHint: dict.slashHelp,
     context: "agent",
-    async onSubmit({ args, agent, rpc }) {
+    async onSubmit({ args, agent, workspace, rpc }) {
       const currentDict = getI18n();
       const trimmed = args.trim();
       if (!trimmed) {
@@ -73,6 +73,7 @@ export default function contribute(client: PluginClientContext) {
 
       await rpc(createTaskRpc, {
         agentId: agent.id,
+        workspaceId: workspace.id,
         delayOrTime: timeInput,
         content: contentInput,
       });

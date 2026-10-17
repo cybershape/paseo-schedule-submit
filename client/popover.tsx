@@ -68,6 +68,7 @@ export function SchedulePopover({ theme, layout, close, ...target }: PluginButto
       }
       return await createTask({
         agentId,
+        workspaceId: target.workspaceId,
         delayOrTime: delayInput.trim(),
         content: content.trim(),
       });
