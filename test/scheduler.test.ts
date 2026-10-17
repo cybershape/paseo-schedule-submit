@@ -25,6 +25,9 @@ async function runTests() {
             send: async (content: string) => {
               sentMessages.push({ agentId, content });
             },
+            refresh: async () => {
+              return { agent: { id: agentId, workspaceId: "ws_default" } };
+            },
           };
         },
       },

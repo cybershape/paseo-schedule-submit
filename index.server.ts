@@ -27,6 +27,7 @@ export default function contribute(server: PluginServerContext) {
 
   // 4. RPC 路由
   server.handle(createTaskRpc, async ({ agentId, workspaceId, delayOrTime, content }, context) => {
+    console.log(`[paseo-schedule-submit] RPC createTask received: agentId=${agentId}, workspaceId=${workspaceId}, delayOrTime=${delayOrTime}`);
     scheduler.setPaseoClient(context.paseo);
     return await scheduler.create(agentId, delayOrTime, content, workspaceId, context.paseo);
   });

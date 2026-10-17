@@ -228,11 +228,22 @@ export class TaskScheduler {
       this.setPaseoClient(paseoOverride);
     }
 
+    // 若未传入 workspaceId，尝试通过 PaseoClient 自动解析
+    let resolvedWorkspaceId = workspaceId;
+    if (!resolvedWorkspaceId && this.paseoClient) {
+      try {
+        const refreshed = await this.paseoClient.agents.ref(agentId).refresh();
+        resolvedWorkspaceId = refreshed?.agent.workspaceId ?? undefined;
+      } catch (err: any) {
+        console.warn(`[paseo-schedule-submit] Could not resolve workspaceId for agent [${agentId}]:`, err?.message || err);
+      }
+    }
+
     const id = `sched_${Date.now()}_${++this.counter}`;
     const task: ScheduledTask = {
       id,
       agentId,
-      workspaceId,
+      workspaceId: resolvedWorkspaceId,
       content,
       createdAt: new Date().toISOString(),
       triggerAt: parsed.targetDate.toISOString(),
@@ -243,8 +254,8 @@ export class TaskScheduler {
     await this.persistAgentTasks(agentId);
     this.onTasksChange?.(agentId);
 
-    if (workspaceId) {
-      await this.updateWorkspaceLabel(workspaceId);
+    if (resolvedWorkspaceId) {
+      await this.updateWorkspaceLabel(resolvedWorkspaceId);
     }
 
     return task;
@@ -304,6 +315,8 @@ export class TaskScheduler {
   }
 
   async setWorkspaceLabel(workspaceId: string, assigned: boolean): Promise<void> {
+    console.log(`[paseo-schedule-submit] Setting workspace label: workspaceId=${workspaceId}, assigned=${assigned}`);
+
     if (this.customWorkspaceLabelSetter) {
       await this.customWorkspaceLabelSetter(workspaceId, assigned);
       return;
@@ -311,9 +324,9 @@ export class TaskScheduler {
 
     if (typeof process !== "undefined" && typeof process.send === "function") {
       try {
-        process.send({
-          type: "paseo_frame",
-          data: JSON.stringify({
+        const payload = {
+          type: "session",
+          message: {
             type: "workspace.label.assignment.set.request",
             requestId: `req_label_${Date.now()}_${Math.random().toString(36).slice(2)}`,
             workspaceId,
@@ -322,12 +335,19 @@ export class TaskScheduler {
               color: "blue",
             },
             assigned,
-          }),
+          },
+        };
+        process.send({
+          type: "paseo_frame",
+          data: JSON.stringify(payload),
           isBinary: false,
         });
+        console.log(`[paseo-schedule-submit] Dispatched workspace label frame for [${workspaceId}] (assigned=${assigned})`);
       } catch (err) {
         console.error(`[paseo-schedule-submit] Failed to send workspace label frame for workspace [${workspaceId}]:`, err);
       }
+    } else {
+      console.warn(`[paseo-schedule-submit] process.send is not available in current environment`);
     }
   }
 
